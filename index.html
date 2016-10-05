@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Advanced Canvas Animation</title>
+  <link href="canvas_styles.css" type="text/css" rel="stylesheet" />
+</head>
+<body>
+  <canvas id="canvas">  <!-- width="500" height="500"> -->
+    
+  </canvas>
+
+
+  <script type="text/javascript">
+    function init() {
+      // window.requestAnimationFrame(draw);
+
+      window.addEventListener("resize", ResizeCanvas, false);
+      ResizeCanvas();
+    }
+
+    let ctx = document.getElementById("canvas").getContext("2d");
+
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.save();
+
+    const generateRandFloat = () => Math.random() * 500;
+      console.log(`Randomly Generated Float:\t${generateRandFloat()}`);
+
+    const getRandVal = () => {
+      // let randFloat = Math.random() * 500;
+          // randFloat2 = Math.random() * 100;
+      return [generateRandFloat(), generateRandFloat()];
+    };
+      console.log(`Random Generated Value:\t${getRandVal()}`);
+
+    const drawNode = (coordPair) => {
+      ctx.beginPath();
+      ctx.arc(...coordPair, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "#F00";
+      ctx.fill();
+    };
+    // drawNode(getRandVal(), getRandVal());
+
+    const drawNodeAxis = (coordPair1, coordPair2) => {
+      ctx.moveTo(coordPair1[0] + 2.5, coordPair1[1] + 2.5);
+      ctx.lineTo(coordPair2[0], coordPair2[1]);
+      ctx.strokeStyle = "#000";
+      ctx.stroke();
+    };
+
+    const createFloatConnection = (coordPair1 = getRandVal(), coordPair2 = getRandVal()) => {
+      // let [rand1, rand2] = [getRandVal(), getRandVal()];
+      drawNode(coordPair1);
+      drawNode(coordPair2);
+      drawNodeAxis(coordPair1, coordPair2);
+      return [coordPair1, coordPair2];
+    };
+    // let nN = createFloatConnection();
+      // console.log("nN:", nN);
+    
+    const floatUp = (node1, node2) => {
+      // ctx.clearRect(0, 0, 500, 500);
+      // ctx.save();
+      let currTimeSeconds = new Date().getSeconds();
+        console.log("Node 1 Coordinates: ", node1.coords);
+      let bottomYCoord = Math.max.call(null, node1.coords[1], node2.coords[1]);
+      let float = createFloatConnection(node1.coords, node2.coords);
+        console.log("MIN:", bottomYCoord);
+      ctx.translate(0, -1);
+    };
+
+    var Node = function() {
+      this.coords = getRandVal();
+    };
+    let newNode = new Node();
+      console.log(`Node constructor:\n`, newNode, `\nPos: `, newNode.coords);
+
+
+    var Conexion = function(...nodes) {
+      this.nodes = nodes;
+    };
+    let newConexion = new Conexion(new Node(), new Node(), new Node());
+      console.log(`Node Conexion:\n`, newConexion, `\nNodes: `, newConexion.nodes);
+
+    
+    // let nN = createFloatConnection();
+    let nodeConnections = [...Array(8).keys()];
+    nodeConnections = nodeConnections.map(i => new Node());
+      console.log(`Node Connections Array:\n`, nodeConnections);
+
+
+    function draw() {
+      ctx.clearRect(0, 0, 500, 500);
+      
+      floatUp(newConexion.nodes[0], newConexion.nodes[1]);
+
+      ctx.save();
+
+      window.requestAnimationFrame(draw);
+
+
+      ctx.restore();
+        console.log("Drawing...");
+    }
+    // draw();
+
+
+    function ResizeCanvas(evt) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight
+    }
+
+
+    init();
+
+  </script>
+</body>
+</html>
