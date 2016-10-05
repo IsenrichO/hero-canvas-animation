@@ -5,7 +5,7 @@
   <link href="canvas_styles.css" type="text/css" rel="stylesheet" />
 </head>
 <body>
-  <canvas id="canvas">  <!-- width="500" height="500"> -->
+  <canvas id="canvas">
     
   </canvas>
 
@@ -18,55 +18,60 @@
       ResizeCanvas();
     }
 
+    const ResizeCanvas = (evt) => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight
+    };
+
+
+
     let ctx = document.getElementById("canvas").getContext("2d");
-
     ctx.globalCompositeOperation = "destination-over";
-    ctx.save();
+    // ctx.save();
 
-    const generateRandFloat = () => Math.random() * 500;
-      console.log(`Randomly Generated Float:\t${generateRandFloat()}`);
+    const generateRandFloat = (dimension = window.innerWidth) => Math.random() * dimension;
+      console.log(`Randomly Generated Float:\t${generateRandFloat(window.innerWidth)}`);
 
     const getRandVal = () => {
-      // let randFloat = Math.random() * 500;
-          // randFloat2 = Math.random() * 100;
-      return [generateRandFloat(), generateRandFloat()];
+      return [generateRandFloat(window.innerWidth), generateRandFloat(window.innerHeight)];
     };
       console.log(`Random Generated Value:\t${getRandVal()}`);
 
     const drawNode = (coordPair) => {
       ctx.beginPath();
-      ctx.arc(...coordPair, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = "#F00";
+      ctx.arc(...coordPair, 10, 0, 2 * Math.PI);
+      // ctx.fillStyle = "#F00";
       ctx.fill();
     };
-    // drawNode(getRandVal(), getRandVal());
 
     const drawNodeAxis = (coordPair1, coordPair2) => {
       ctx.moveTo(coordPair1[0] + 2.5, coordPair1[1] + 2.5);
       ctx.lineTo(coordPair2[0], coordPair2[1]);
-      ctx.strokeStyle = "#000";
+      ctx.lineWidth = "2.5";
+      // ctx.strokeStyle = "#F00";
       ctx.stroke();
     };
 
     const createFloatConnection = (coordPair1 = getRandVal(), coordPair2 = getRandVal()) => {
-      // let [rand1, rand2] = [getRandVal(), getRandVal()];
-      drawNode(coordPair1);
-      drawNode(coordPair2);
+      drawNode(coordPair1), drawNode(coordPair2);
+      // drawNode(coordPair1) && drawNode(coordPair2);
+
+      // ctx.strokeStyle = "#F00";
       drawNodeAxis(coordPair1, coordPair2);
       return [coordPair1, coordPair2];
     };
-    // let nN = createFloatConnection();
-      // console.log("nN:", nN);
     
     const floatUp = (node1, node2) => {
-      // ctx.clearRect(0, 0, 500, 500);
-      // ctx.save();
+    // const floatUp = (cxn) => {
+      // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       let currTimeSeconds = new Date().getSeconds();
         console.log("Node 1 Coordinates: ", node1.coords);
       let bottomYCoord = Math.max.call(null, node1.coords[1], node2.coords[1]);
-      let float = createFloatConnection(node1.coords, node2.coords);
         console.log("MIN:", bottomYCoord);
-      ctx.translate(0, -1);
+
+      createFloatConnection([node1.coords[0], --node1.coords[0]], [node2.coords[0], --node2.coords[1]]);
+      // createFloatConnection(node1.coords, node2.coords);
+      // ctx.translate(0, -1);
     };
 
     var Node = function() {
@@ -78,37 +83,44 @@
 
     var Conexion = function(...nodes) {
       this.nodes = nodes;
+      createFloatConnection(this.nodes[0].coords, this.nodes[1].coords);
     };
     let newConexion = new Conexion(new Node(), new Node(), new Node());
       console.log(`Node Conexion:\n`, newConexion, `\nNodes: `, newConexion.nodes);
 
     
-    // let nN = createFloatConnection();
-    let nodeConnections = [...Array(8).keys()];
-    nodeConnections = nodeConnections.map(i => new Node());
+
+    let nodeConnections = [...Array(8).keys()].map(i => new Conexion(new Node(), new Node()));
+    // let nodeConnections = [new Conexion(new Node(), new Node())];
       console.log(`Node Connections Array:\n`, nodeConnections);
 
-
     function draw() {
-      ctx.clearRect(0, 0, 500, 500);
-      
-      floatUp(newConexion.nodes[0], newConexion.nodes[1]);
+      ctx.strokeStyle = "#F9B379";      // "rgba(249, 179, 121, 1.0)";
+      ctx.fillStyle = "#F9B379";        // "rgba(249, 179, 121, 1.0)";
 
       ctx.save();
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+
+      let pushNewConexions = setInterval(function() {
+        return nodeConnections.push(new Conexion(new Node(), new Node()));
+      }, 4000);
+
+      nodeConnections.forEach(cxn => {
+        floatUp(cxn.nodes[0], cxn.nodes[1]);
+      });
 
       window.requestAnimationFrame(draw);
 
 
       ctx.restore();
+      clearInterval(pushNewConexions);
         console.log("Drawing...");
     }
-    // draw();
+    draw();
 
 
-    function ResizeCanvas(evt) {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight
-    }
+
 
 
     init();
