@@ -11,13 +11,14 @@
 
 
   <script type="text/javascript">
+    // Controller:
     function init() {
-      // window.requestAnimationFrame(draw);
 
       window.addEventListener("resize", ResizeCanvas, false);
       ResizeCanvas();
     }
 
+    // Callback function used in response to browser window dimension changes (i.e., resizing):
     const ResizeCanvas = (evt) => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
@@ -29,34 +30,52 @@
     ctx.globalCompositeOperation = "destination-over";
     // ctx.save();
 
+    // 
     const generateRandFloat = (dimension = window.innerWidth) => Math.random() * dimension;
       console.log(`Randomly Generated Float:\t${generateRandFloat(window.innerWidth)}`);
 
-    const getRandVal = () => {
-      return [generateRandFloat(window.innerWidth), generateRandFloat(window.innerHeight)];
-    };
-      console.log(`Random Generated Value:\t${getRandVal()}`);
+    // 
+    const getRandVal = () => ({
+      x: generateRandFloat(window.innerWidth),
+      y: generateRandFloat(window.innerHeight)
+    });
+      console.log(`Random Generated Value:\t`, getRandVal());
 
+    // Produces a small circle as positioned at node connection vertices:
     const drawNode = (coordPair) => {
       ctx.beginPath();
-      ctx.arc(...coordPair, 10, 0, 2 * Math.PI);
-      // ctx.fillStyle = "#F00";
+      // ctx.arc(...coordPair, 10, 0, 2 * Math.PI);
+      ctx.arc(...Object.values(coordPair), 10, 0, 2 * Math.PI);
       ctx.fill();
     };
 
+    // Returns the Euclidean distance spanning two particular nodes:
+    const getEuclideanDist = (coordPair1, coordPair2) => {
+      // let [xCoords, yCoords] = [[node1.coords[0], node2.coords[0]], [node1.coords[1], node2.coords[1]]];
+      let [xCoords, yCoords] = [[coordPair1.x, coordPair2.x], [coordPair1.y, coordPair2.y]];
+        console.log("xCoords:", xCoords, "yCoords:", yCoords, "CP1:", coordPair1);
+      return Math.sqrt(Math.pow(xCoords[1] - xCoords[0], 2) + Math.pow(yCoords[1] - yCoords[0], 2));
+    };
+
+    // Produces the inter-vertex edge as a quadratic Bézier curve connecting the two:
     const drawNodeAxis = (coordPair1, coordPair2) => {
-      ctx.moveTo(coordPair1[0] + 2.5, coordPair1[1] + 2.5);
-      ctx.lineTo(coordPair2[0], coordPair2[1]);
-      ctx.lineWidth = "2.5";
-      // ctx.strokeStyle = "#F00";
+      ctx.lineWidth = "2";
+      let dist = getEuclideanDist(coordPair1, coordPair2);
+        console.log("Euclidean:", dist);
+
+      ctx.moveTo(coordPair1.x + 5, coordPair1.y + 5);
+      // ctx.lineTo(coordPair2[0], coordPair2[1]);
+
+      coordPair1[0] <= coordPair2[0]
+        ? ctx.quadraticCurveTo(coordPair1.x + (dist / 2), coordPair1.y - (dist / 2), ...(Object.values(coordPair2).map(val => val - 5)))
+        : ctx.quadraticCurveTo(coordPair2.x + (dist / 2), coordPair2.y - (dist / 2), ...(Object.values(coordPair2).map(val => val - 5)));
       ctx.stroke();
     };
 
+    // 
     const createFloatConnection = (coordPair1 = getRandVal(), coordPair2 = getRandVal()) => {
-      drawNode(coordPair1), drawNode(coordPair2);
       // drawNode(coordPair1) && drawNode(coordPair2);
-
-      // ctx.strokeStyle = "#F00";
+      drawNode(coordPair1), drawNode(coordPair2);
       drawNodeAxis(coordPair1, coordPair2);
       return [coordPair1, coordPair2];
     };
@@ -66,13 +85,14 @@
       // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       let currTimeSeconds = new Date().getSeconds();
         console.log("Node 1 Coordinates: ", node1.coords);
-      let bottomYCoord = Math.max.call(null, node1.coords[1], node2.coords[1]);
+      let bottomYCoord = Math.max.call(null, node1.coords.x, node2.coords.x);
         console.log("MIN:", bottomYCoord);
 
-      createFloatConnection([node1.coords[0], --node1.coords[0]], [node2.coords[0], --node2.coords[1]]);
+      createFloatConnection({x: node1.coords.x, y: --node1.coords.x}, {x: node2.coords.x, y: --node2.coords.y});
       // createFloatConnection(node1.coords, node2.coords);
-      // ctx.translate(0, -1);
     };
+
+
 
     var Node = function() {
       this.coords = getRandVal();
@@ -90,10 +110,16 @@
 
     
 
-    let nodeConnections = [...Array(8).keys()].map(i => new Conexion(new Node(), new Node()));
     // let nodeConnections = [new Conexion(new Node(), new Node())];
+    let nodeConnections = [...Array(8).keys()].map(i => new Conexion(new Node(), new Node()));
       console.log(`Node Connections Array:\n`, nodeConnections);
 
+    let pushNewConexions = setInterval(function() {
+      return nodeConnections.push(new Conexion(new Node(), new Node()));
+    }, 1000);
+    // clearInterval(pushNewConexions);
+
+    
     function draw() {
       ctx.strokeStyle = "#F9B379";      // "rgba(249, 179, 121, 1.0)";
       ctx.fillStyle = "#F9B379";        // "rgba(249, 179, 121, 1.0)";
@@ -102,9 +128,6 @@
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
 
-      let pushNewConexions = setInterval(function() {
-        return nodeConnections.push(new Conexion(new Node(), new Node()));
-      }, 4000);
 
       nodeConnections.forEach(cxn => {
         floatUp(cxn.nodes[0], cxn.nodes[1]);
@@ -114,7 +137,6 @@
 
 
       ctx.restore();
-      clearInterval(pushNewConexions);
         console.log("Drawing...");
     }
     draw();
