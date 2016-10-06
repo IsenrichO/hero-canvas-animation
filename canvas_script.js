@@ -6,8 +6,6 @@ function init() {
   ResizeCanvas();
 }
 
-
-
 const canvas = document.getElementById('canvas'),
       MAX_DIST_2 = Math.pow(100, 2);
 
